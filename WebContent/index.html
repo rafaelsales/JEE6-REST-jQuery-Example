@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Controle Financeiro</title>
+<link rel="stylesheet" href="css/bootstrap.css"></link>
+<link rel="stylesheet" href="css/bootstrap-responsive.css"></link>
+<link rel="stylesheet" href="css/cupertino/jquery-ui-1.8.19.custom.css"></link>
+<script type="text/javascript" src="js/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.19.custom.min.js"></script>
+<script type="text/javascript" src="js/knockout-2.0.0.js"></script>
+<script type="text/javascript" src="js/bootstrap.js"></script>
+<script type="text/javascript">
+var $popupAdicionar;
+
+$(document).ready(function() {
+	atualizarMovimentacoes();
+	
+	$popupAdicionar = $('#popupAdicionar');
+	$popupAdicionar.dialog({ autoOpen: false, modal: true, show: 'blind', hide: 'blind' });
+	
+	$('#btAdicionarMovimentacao').click(function() {
+		$popupAdicionar.dialog('open');
+	});
+	
+	//Ative o DatePicker nos campos com classe .data
+	$("input.data").datepicker({ constrainInput: true, dateFormat: 'dd/mm/yy'});
+	
+	//Registra eventos dos botões da tabela de movimentos:
+	$("#tbMovimentacoes .trTemplate")
+	  .find("button[name=editar]").click(editarMovimentacao).end()
+	  .find("button[name=excluir]").click(excluirMovimentacao).end();
+	
+	//Registra os eventos do formulário da popup
+	$popupAdicionar
+	  .find('form').submit(adicionarMovimentacao).end()
+	  .find(':button[name=cancelar]').click(function() {
+		$popupAdicionar.dialog('close');
+	  }).end();
+	
+});
+
+function atualizarMovimentacoes() {
+  var $tbMovimentacoes = $('#tbMovimentacoes');
+  var $trTemplate = $tbMovimentacoes.find('.trTemplate');
+  
+  $.getJSON('rest/movimentacao/listar',
+    function(movimentacoesArray) {
+      $tbMovimentacoes.children().not('.hidden').remove();
+     
+      $(movimentacoesArray).each(function(i, mov) {
+    	$trTemplate.clone(true)
+    	  .removeClass() // Remove as classes .template e .hidden
+    	  .children()
+    	    .eq(0).text(mov.dataFormatada).end()
+    	    .eq(1).text(mov.tipoFormatado).end()
+    	    .eq(2).text(mov.descricao).end()
+    	    .eq(3).text(mov.valor.toFixed(2)).end()
+    	    .eq(4)
+    	      .find('button[name=editar]').val(mov.id).end()
+    	      .find('button[name=excluir]').val(mov.id).end()
+    	      .end()
+    	    .end()
+    	  .appendTo($tbMovimentacoes);
+      });
+  });
+}
+
+function adicionarMovimentacao() {
+  var $form = $popupAdicionar.find('form');
+  var movimentacao = {
+    id: $form.find('[name=id]').val(),
+    dataFormatada: $form.find('[name=dataFormatada]').val(),
+    descricao: $form.find('[name=descricao]').val(),
+    tipo: $form.find('[name=tipo]:checked').val(),
+    valor: $form.find('[name=valor]').val()
+  };
+  console.log($form.find('[name=tipo]:checked').val());
+  
+  $.ajax({
+    url: 'rest/movimentacao/salvar',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(movimentacao),
+    dataType: "json",
+    success: function() {
+      atualizarMovimentacoes();
+      $popupAdicionar.dialog('close');
+      $form[0].reset();
+    }
+  });
+}
+
+function editarMovimentacao() {
+  var $form = $popupAdicionar.find('form');
+  $.getJSON('rest/movimentacao/carregar',
+    { id: $(this).val() },
+      function(mov) {
+    	$form.find('[name=id]').val(mov.id),
+    	$form.find('[name=dataFormatada]').val(mov.dataFormatada),
+    	$form.find('[name=descricao]').val(mov.descricao),
+    	$form.find('[name=tipo]').filter('[value=' + mov.tipo + ']').prop('checked', true),
+    	$form.find('[name=valor]').val(mov.valor)
+    	$popupAdicionar.dialog('open');
+  });
+}
+
+function excluirMovimentacao() {
+  $.getJSON('rest/movimentacao/excluir',
+    { id: $(this).val() },
+    function() {
+      atualizarMovimentacoes();
+  });
+}
+</script>
+</head>
+<body style="padding: 15px">
+
+<div>
+	<button id="btAdicionarMovimentacao" class="btn btn-primary" type="button">
+		<i class="icon-plus icon-white"></i> Adicionar Movimentação
+	</button>
+	<br/><br/>
+	
+	<h4>Movimentações</h4>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Data</th>
+				<th>Tipo</th>
+				<th>Descrição</th>
+				<th>Valor</th>
+				<th>Ações</th>
+			</tr>
+		</thead>
+		<tbody id="tbMovimentacoes">
+			<tr class="hidden trTemplate">
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>
+					<button name="editar" class="btn btn-primary">
+						<i class="icon-pencil icon-white"></i>
+					</button>
+					<button name="excluir" class="btn btn-danger">
+						<i class="icon-remove icon-white"></i>
+					</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div id="popupAdicionar" title="Nova Movimentação" style="display: none;">
+	<form onsubmit="return false;" class="well">
+		<input type="hidden" name="id" value=""/>
+		
+		<div class="control-group">
+			<label>Tipo:</label>
+			<div class="controls">
+				<label class="radio inline">
+					<input type="radio" name="tipo" value="DESPESA" checked="checked"/> Despesa&nbsp;&nbsp;
+				</label>
+				<label class="radio inline">
+					<input type="radio" name="tipo" value="RECEITA"/> Receita
+				</label>
+			</div>
+		</div>
+		
+		<input type="text" name="dataFormatada" class="data" placeholder="Data" required="required"/>
+
+		<input type="text" name="descricao" placeholder="Descrição da movimentação" required="required" value="Teste"/>
+
+		<input type="text" name="valor" placeholder="Valor da movimentação" required="required" value="250.10"/>
+		
+		<br/><br/>
+		
+		<div align="center">
+			<button name="salvar" class="btn btn-success" type="submit">
+				<i class="icon-ok icon-white"></i> Salvar
+			</button>
+			<button name="cancelar" class="btn btn-danger" type="submit">
+				Cancelar
+			</button>
+		</div>
+	</form>
+</div>
+</body>
+</html>

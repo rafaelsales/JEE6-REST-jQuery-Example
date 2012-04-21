@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<!-- This pom.xml is used to download the project dependencies and copy 
+		them to project's library directory. -->
+	<!-- Usage: mvn dependency:copy-dependencies -->
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>rafaelcds</groupId>
+	<artifactId>JEE6-REST-jQuery-Example</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0.0.RELEASE</version>
+	<name>JEE6-REST-jQuery-Example</name>
+
+	<repositories>
+		<repository>
+			<id>jboss</id>
+			<url>>http://repository.jboss.org/nexus/content/groups/public/</url>
+		</repository>
+	</repositories>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson-provider</artifactId>
+			<version>2.3.1.GA</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- Copy dependencies to WebContent/WEB-INF/lib -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>default-cli</id>
+							<goals>
+								<goal>copy-dependencies</goal>
+							</goals>
+							<configuration>
+								<outputDirectory>${basedir}/WebContent/WEB-INF/lib/</outputDirectory>
+								<overWriteReleases>false</overWriteReleases>
+								<overWriteSnapshots>false</overWriteSnapshots>
+								<overWriteIfNewer>true</overWriteIfNewer>
+								<excludeArtifactIds></excludeArtifactIds>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+
+</project>
