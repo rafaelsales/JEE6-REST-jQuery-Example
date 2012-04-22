@@ -15,12 +15,10 @@ import javax.ws.rs.core.MediaType;
 import rafaelcds.model.Movimentacao;
 import rafaelcds.service.MovimentacaoService;
 
-@Stateless
+@Stateless // Necessário para usar CDI
 @ApplicationPath("/rest")
 @Path("/movimentacao")
 public class MovimentacaoController extends Application {
-
-	public static final String TYPE_JSON = "application/json";
 
 	@Inject
 	private MovimentacaoService movimentacaoService;

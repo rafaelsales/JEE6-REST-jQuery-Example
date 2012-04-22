@@ -32,7 +32,7 @@ public class MovimentacaoService {
 	
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public List<Movimentacao> obterTodos() {
-		String sql = "FROM Movimentacao ORDER BY id";
+		String sql = "FROM Movimentacao ORDER BY data, tipo, valor";
 		return entityManager.createQuery(sql, Movimentacao.class)
 								.getResultList();
 	}

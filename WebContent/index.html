@@ -33,7 +33,7 @@ $(document).ready(function() {
 	
 	//Registra os eventos do formulário da popup
 	$popupAdicionar
-	  .find('form').submit(adicionarMovimentacao).end()
+	  .find('form').submit(salvarMovimentacao).end()
 	  .find(':button[name=cancelar]').click(function() {
 		$popupAdicionar.dialog('close');
 	  }).end();
@@ -49,31 +49,29 @@ function atualizarMovimentacoes() {
       $tbMovimentacoes.children().not('.hidden').remove();
      
       $(movimentacoesArray).each(function(i, mov) {
-    	$trTemplate.clone(true)
-    	  .removeClass() // Remove as classes .template e .hidden
-    	  .children()
+    	var $trNovo = $trTemplate.clone(true).removeClass() // Remove as classes .template e .hidden
+    	$trNovo.children()
     	    .eq(0).text(mov.dataFormatada).end()
     	    .eq(1).text(mov.tipoFormatado).end()
     	    .eq(2).text(mov.descricao).end()
     	    .eq(3).text(mov.valor.toFixed(2)).end()
     	    .eq(4)
     	      .find('button[name=editar]').val(mov.id).end()
-    	      .find('button[name=excluir]').val(mov.id).end()
-    	      .end()
-    	    .end()
-    	  .appendTo($tbMovimentacoes);
+    	      .find('button[name=excluir]').val(mov.id).end();
+	      
+    	$trNovo.appendTo($tbMovimentacoes);
       });
   });
 }
 
-function adicionarMovimentacao() {
+function salvarMovimentacao() {
   var $form = $popupAdicionar.find('form');
   var movimentacao = {
     id: $form.find('[name=id]').val(),
     dataFormatada: $form.find('[name=dataFormatada]').val(),
     descricao: $form.find('[name=descricao]').val(),
     tipo: $form.find('[name=tipo]:checked').val(),
-    valor: $form.find('[name=valor]').val()
+    valor: parseFloat($form.find('[name=valor]').val()).toFixed(2)
   };
   console.log($form.find('[name=tipo]:checked').val());
   
@@ -95,13 +93,14 @@ function editarMovimentacao() {
   var $form = $popupAdicionar.find('form');
   $.getJSON('rest/movimentacao/carregar',
     { id: $(this).val() },
-      function(mov) {
-    	$form.find('[name=id]').val(mov.id),
-    	$form.find('[name=dataFormatada]').val(mov.dataFormatada),
-    	$form.find('[name=descricao]').val(mov.descricao),
-    	$form.find('[name=tipo]').filter('[value=' + mov.tipo + ']').prop('checked', true),
-    	$form.find('[name=valor]').val(mov.valor)
-    	$popupAdicionar.dialog('open');
+    function(mov) {
+      $form.find('[name=id]').val(mov.id),
+      $form.find('[name=dataFormatada]').val(mov.dataFormatada),
+      $form.find('[name=descricao]').val(mov.descricao),
+      $form.find('[name=tipo]').filter('[value=' + mov.tipo + ']').prop('checked', true),
+      $form.find('[name=valor]').val(mov.valor.toFixed(2))
+      
+      $popupAdicionar.dialog('open');
   });
 }
 
@@ -113,17 +112,26 @@ function excluirMovimentacao() {
   });
 }
 </script>
+<style type="text/css">
+.titulo {
+	text-shadow: 1px 1px 5px #BBF;
+}
+</style>
 </head>
 <body style="padding: 15px">
 
+<div align="center">
+	<h2 class="titulo">Sistema de Controle Financeiro Pessoal</h2>
+</div>
+<br/>
 <div>
 	<button id="btAdicionarMovimentacao" class="btn btn-primary" type="button">
 		<i class="icon-plus icon-white"></i> Adicionar Movimentação
 	</button>
 	<br/><br/>
 	
-	<h4>Movimentações</h4>
 	<table class="table table-striped">
+		<caption><strong>Movimentações</strong></caption>
 		<thead>
 			<tr>
 				<th>Data</th>
@@ -170,9 +178,9 @@ function excluirMovimentacao() {
 		
 		<input type="text" name="dataFormatada" class="data" placeholder="Data" required="required"/>
 
-		<input type="text" name="descricao" placeholder="Descrição da movimentação" required="required" value="Teste"/>
+		<input type="text" name="descricao" placeholder="Descrição da movimentação" required="required"/>
 
-		<input type="text" name="valor" placeholder="Valor da movimentação" required="required" value="250.10"/>
+		<input type="text" name="valor" placeholder="Valor da movimentação" required="required"/>
 		
 		<br/><br/>
 		
